@@ -2,19 +2,21 @@
     <div>
         <ScheduleButton
             :text="'Hide all'"
+            :isActive="areAllHidden"
             @toggle-schedule="hideAllSchedules()"
         />
         <ScheduleButton
             :text="'Show all'"
+            :isActive="areAllShown"
             @toggle-schedule="showAllSchedules()"
         />
     </div>
     <div>
-        <!--//TODO active/rest state button colors -->
         <ScheduleButton
             v-for="schedule in schedules"
             :key="schedule.title"
             :text="schedule.title"
+            :isActive="schedule.show"
             @toggle-schedule="schedule.show = !schedule.show"
         />
     </div>
@@ -276,6 +278,26 @@ export default {
                     poznanData.push($(this).text().trim());
                 });
             this.schedules.poznan.data = poznanData;
+        },
+    },
+    computed: {
+        areAllShown() {
+            let response = true;
+            Object.keys(this.schedules).forEach((elem) => {
+                if (!this.schedules[elem].show) {
+                    response = false;
+                }
+            });
+            return response;
+        },
+        areAllHidden() {
+            let response = true;
+            Object.keys(this.schedules).forEach((elem) => {
+                if (this.schedules[elem].show) {
+                    response = false;
+                }
+            });
+            return response;
         },
     },
     mounted() {
