@@ -1,5 +1,15 @@
 <template>
-    <SchedulesList @select-change="changeSchedule" />
+    <ScheduleSelect
+        @select-change="changeSchedule"
+        :scheduleDates="scheduleDates"
+        :selectedSchedule="currentSchedule"
+    />
+    <ScheduleButtonRemove @remove-schedule="removeSchedule"
+        >Remove current schedule</ScheduleButtonRemove
+    >
+    <ScheduleButtonRemove @remove-schedule="removeAllSchedules"
+        >Remove all schedules</ScheduleButtonRemove
+    >
 
     <div>
         <ScheduleButton
@@ -37,7 +47,8 @@
 //TODO add app description how it works, data flow etc
 import Schedule from "@/components/Schedule.vue";
 import ScheduleButton from "@/components/ScheduleButton.vue";
-import SchedulesList from "@/components/SchedulesList.vue";
+import ScheduleSelect from "@/components/ScheduleSelect.vue";
+import ScheduleButtonRemove from "@/components/ScheduleButtonRemove.vue";
 //TODO switch from axios to fetch
 import axios from "axios";
 import cheerio from "cheerio";
@@ -54,10 +65,19 @@ export default {
     components: {
         Schedule,
         ScheduleButton,
-        SchedulesList,
+        ScheduleSelect,
+        ScheduleButtonRemove,
     },
     mixins: [Date],
     data() {
+        let date = this.getTodayDate();
+        const scheduleDates = [date];
+        date = this.getDayBefore(date);
+        while (localStorage.getItem(date)) {
+            scheduleDates.push(date);
+            date = this.getDayBefore(date);
+        }
+        const today = this.getTodayDate();
         return {
             schedules: {
                 pr1: {
@@ -115,6 +135,8 @@ export default {
                     show: false,
                 },
             },
+            currentSchedule: today,
+            scheduleDates,
         };
     },
     methods: {
@@ -385,7 +407,36 @@ export default {
         },
         //TODO add ability to remove certain schedules, as well as remove all of them
         changeSchedule(date) {
+            this.currentSchedule = date;
             this.schedules = JSON.parse(localStorage.getItem(date));
+        },
+        removeSchedule(date = this.currentSchedule) {
+            localStorage.removeItem(date);
+            if (date !== this.getTodayDate()) {
+                this.scheduleDates.splice(this.scheduleDates.indexOf(date), 1);
+            } else {
+                // when removing today, scrape schedules again
+                this.saveScraped().then(() => {
+                    this.changeSchedule(this.getTodayDate());
+                });
+            }
+        },
+        removeAllSchedules() {
+            // desctructuring because removeSchedule mutates scheduleDates
+            [...this.scheduleDates].forEach((date) => {
+                this.removeSchedule(date);
+            });
+        },
+        saveScraped() {
+            return new Promise((resolve) => {
+                this.scrape().then(() => {
+                    localStorage.setItem(
+                        this.getTodayDate(),
+                        JSON.stringify(this.schedules)
+                    );
+                    resolve();
+                });
+            });
         },
     },
     computed: {
@@ -410,12 +461,7 @@ export default {
     },
     mounted() {
         //* initial scraping, then saving current state to localstorage
-        this.scrape().then(() => {
-            localStorage.setItem(
-                this.getTodayDate(),
-                JSON.stringify(this.schedules)
-            );
-        });
+        this.saveScraped();
     },
 };
 </script>

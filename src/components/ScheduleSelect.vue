@@ -12,17 +12,19 @@ import Date from "@/mixins/Date.js";
 export default {
     mixins: [Date],
     data() {
-        let date = this.getTodayDate();
-        const scheduleDates = [date];
-        date = this.getDayBefore(date);
-        while (localStorage.getItem(date)) {
-            scheduleDates.push(date);
-            date = this.getDayBefore(date);
-        }
         return {
-            scheduleDates,
-            selected: this.getTodayDate(),
+            selected: this.selectedSchedule,
         };
+    },
+    props: {
+        scheduleDates: {
+            type: Array,
+            required: true,
+        },
+        selectedSchedule: {
+            type: String,
+            required: true,
+        },
     },
     emits: ["select-change"],
 };
