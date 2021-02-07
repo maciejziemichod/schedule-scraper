@@ -1,5 +1,9 @@
 <template>
-    <button :class="{ active: isActive }" @click="$emit('toggle-schedule')">
+    <button
+        class="btn"
+        :class="{ active: isActive }"
+        @click="$emit('toggle-schedule')"
+    >
         {{ text }}
     </button>
 </template>
@@ -20,8 +24,14 @@ export default {
 };
 </script>
 
-<style scoped>
+<style>
+.btn {
+    margin: 0 0.5rem;
+}
+.btn:first-of-type {
+    margin-left: 0;
+}
 .active {
-    background-color: blue;
+    color: #635bff;
 }
 </style>

@@ -1,54 +1,66 @@
-<template>
-    <ScheduleSelect
-        @select-change="changeSchedule"
-        :scheduleDates="scheduleDates"
-        :selectedSchedule="currentSchedule"
-    />
-    <ScheduleButtonRemove @remove-schedule="removeSchedule"
-        >Remove current schedule</ScheduleButtonRemove
-    >
-    <ScheduleButtonRemove @remove-schedule="removeAllSchedules"
-        >Remove all schedules</ScheduleButtonRemove
-    >
+<template >
+    <div class="container" :class="computedTheme">
+        <AppNav>
+            <ScheduleSelect
+                @select-change="changeSchedule"
+                :scheduleDates="scheduleDates"
+                :selectedSchedule="currentSchedule"
+            />
+            <DarkModeButton @toggle-theme="toogleTheme">
+                <Icon :icon="icon" />
+            </DarkModeButton>
+        </AppNav>
+        <div class="remove-buttons">
+            <ScheduleButtonRemove @remove-schedule="removeSchedule"
+                >Remove current schedule</ScheduleButtonRemove
+            >
+            <ScheduleButtonRemove @remove-schedule="removeAllSchedules"
+                >Remove all schedules</ScheduleButtonRemove
+            >
+        </div>
 
-    <div>
-        <ScheduleButton
-            :text="'Hide all'"
-            :isActive="areAllHidden"
-            @toggle-schedule="hideAllSchedules()"
-        />
-        <ScheduleButton
-            :text="'Show all'"
-            :isActive="areAllShown"
-            @toggle-schedule="showAllSchedules()"
-        />
-    </div>
-    <div>
-        <ScheduleButton
-            v-for="schedule in schedules"
-            :key="schedule.title"
-            :text="schedule.title"
-            :isActive="schedule.show"
-            @toggle-schedule="schedule.show = !schedule.show"
-        />
-    </div>
-    <!-- //TODO add buttons styled like tailwind components elements badges/buttons/button groups -->
-    <!-- they will all be off by default, you can turn on as many as you want, there are also buttons to toggle all -->
-    <div>
-        <Schedule
-            v-for="schedule in schedules"
-            :key="schedule.title"
-            :schedule="schedule"
-        />
+        <div>
+            <ScheduleButton
+                :text="'Hide all'"
+                :isActive="areAllHidden"
+                @toggle-schedule="hideAllSchedules()"
+            />
+            <ScheduleButton
+                :text="'Show all'"
+                :isActive="areAllShown"
+                @toggle-schedule="showAllSchedules()"
+            />
+        </div>
+        <div>
+            <ScheduleButton
+                v-for="schedule in schedules"
+                :key="schedule.title"
+                :text="schedule.title"
+                :isActive="schedule.show"
+                @toggle-schedule="schedule.show = !schedule.show"
+            />
+        </div>
+        <div>
+            <Schedule
+                v-for="schedule in schedules"
+                :key="schedule.title"
+                :schedule="schedule"
+            />
+        </div>
     </div>
 </template>
 
 <script>
+//TODO add search
 //TODO add app description how it works, data flow etc
+//TODO split the code a little bit
 import Schedule from "@/components/Schedule.vue";
 import ScheduleButton from "@/components/ScheduleButton.vue";
 import ScheduleSelect from "@/components/ScheduleSelect.vue";
 import ScheduleButtonRemove from "@/components/ScheduleButtonRemove.vue";
+import DarkModeButton from "@/components/DarkModeButton.vue";
+import AppNav from "@/components/AppNav.vue";
+import Icon from "@/components/Icon.vue";
 //TODO switch from axios to fetch
 import axios from "axios";
 import cheerio from "cheerio";
@@ -67,6 +79,9 @@ export default {
         ScheduleButton,
         ScheduleSelect,
         ScheduleButtonRemove,
+        DarkModeButton,
+        AppNav,
+        Icon,
     },
     mixins: [Date],
     data() {
@@ -137,6 +152,7 @@ export default {
             },
             currentSchedule: today,
             scheduleDates,
+            theme: "light",
         };
     },
     methods: {
@@ -401,11 +417,6 @@ export default {
             const promises = [pr, tok, zet, rmf, poznan];
             return Promise.all(promises);
         },
-        //TODO remove it later
-        log(value = "") {
-            console.log("test", value);
-        },
-        //TODO add ability to remove certain schedules, as well as remove all of them
         changeSchedule(date) {
             this.currentSchedule = date;
             this.schedules = JSON.parse(localStorage.getItem(date));
@@ -438,6 +449,13 @@ export default {
                 });
             });
         },
+        toogleTheme() {
+            if (this.theme === "light") {
+                this.theme = "dark";
+            } else {
+                this.theme = "light";
+            }
+        },
     },
     computed: {
         areAllShown() {
@@ -458,6 +476,12 @@ export default {
             });
             return response;
         },
+        computedTheme() {
+            return this.theme === "light" ? "light-theme" : "dark-theme";
+        },
+        icon() {
+            return this.theme === "light" ? "moon" : "sun";
+        },
     },
     mounted() {
         //* initial scraping, then saving current state to localstorage
@@ -467,12 +491,53 @@ export default {
 </script>
 
 <style>
-/* //TODO style it, inspire from tailwind css */
-#app {
+body {
+    margin: 0;
+    padding: 0;
+}
+.light-theme {
+    --font-color: #425466;
+    --background-color: #ffffff;
+    --hover-color: #000000;
+}
+.dark-theme {
+    --font-color: #ebeff8;
+    --background-color: #1e2933;
+    --hover-color: #52597a;
+}
+.container {
     font-family: Avenir, Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    color: #2c3e50;
-    margin-top: 60px;
+    color: var(--font-color);
+    background-color: var(--background-color);
+    min-height: 100vh;
+    padding: 0 2rem 2rem 2rem;
+}
+button {
+    color: inherit;
+    background: none;
+    border: none;
+    outline: none;
+    padding: 0;
+}
+button:hover {
+    cursor: pointer;
+    color: var(--hover-color);
+}
+select {
+    outline: none;
+    border: none;
+    border-bottom: 1px solid var(--font-color);
+    color: inherit;
+    background: var(--background-color);
+}
+.remove-buttons {
+    display: flex;
+    justify-content: flex-end;
+    padding: 1rem 0;
+}
+.remove-buttons > * {
+    margin: 0 1rem;
 }
 </style>

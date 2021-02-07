@@ -47,9 +47,6 @@ export default {
 </script>
 
 <style scoped>
-:root {
-    --padding: 10px;
-}
 .data,
 .time {
     display: inline-block;
@@ -57,21 +54,18 @@ export default {
 .data {
     width: 80%;
 }
+.data:not(.fw) {
+    padding: 5px 0;
+
+    border-top: solid 1px var(--font-color);
+}
 .data.fw,
 .data:first-of-type {
     padding-left: 20%;
 }
 .time {
-    padding-top: 10px;
+    border-top: solid 1px var(--font-color);
+    padding: 5px 0;
     width: 20%;
-}
-.time:not(:first-of-type):before {
-    content: "";
-    display: block;
-    position: relative;
-    bottom: 5px;
-    width: calc(100vw - 35px);
-    height: 0;
-    border-top: solid 1px black;
 }
 </style>
