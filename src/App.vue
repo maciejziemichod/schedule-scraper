@@ -1,4 +1,6 @@
 <template>
+    <SchedulesList @select-change="changeSchedule" />
+
     <div>
         <ScheduleButton
             :text="'Hide all'"
@@ -32,12 +34,15 @@
 </template>
 
 <script>
-//TODO when all axios are done, save this day's schedules to localstorage, so that user can go back to previous days using button,
-// it will just swap schedules data
+//TODO add app description how it works, data flow etc
 import Schedule from "@/components/Schedule.vue";
-import axios from "axios";
 import ScheduleButton from "@/components/ScheduleButton.vue";
+import SchedulesList from "@/components/SchedulesList.vue";
+//TODO switch from axios to fetch
+import axios from "axios";
 import cheerio from "cheerio";
+import { v4 as uuidv4 } from "uuid";
+import Date from "@/mixins/Date.js";
 
 const PROXY =
     process.env.NODE_ENV === "development"
@@ -49,7 +54,9 @@ export default {
     components: {
         Schedule,
         ScheduleButton,
+        SchedulesList,
     },
+    mixins: [Date],
     data() {
         return {
             schedules: {
@@ -123,17 +130,19 @@ export default {
         },
         finalPRFilter(array) {
             const regex = /([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]/;
-            return array.filter((elem, index) => {
-                if (elem.match(regex) && index !== 0) {
-                    if (array[index - 1].match(regex)) {
+            return this.prepareData(
+                array.filter((elem, index) => {
+                    if (elem.match(regex) && index !== 0) {
+                        if (array[index - 1].match(regex)) {
+                            return false;
+                        }
+                    }
+                    if (elem.trim() === "") {
                         return false;
                     }
-                }
-                if (elem.trim() === "") {
-                    return false;
-                }
-                return true;
-            });
+                    return true;
+                })
+            );
         },
         parsePR(data) {
             const $ = cheerio.load(data);
@@ -208,7 +217,7 @@ export default {
                 })
                 .toArray();
 
-            this.schedules.rmf.data = rmf;
+            this.schedules.rmf.data = this.prepareData(rmf);
         },
         parseZET(data) {
             const $ = cheerio.load(data);
@@ -226,7 +235,7 @@ export default {
                     return $(this).text().trim();
                 })
                 .toArray();
-            this.schedules.zet.data = zet;
+            this.schedules.zet.data = this.prepareData(zet);
         },
         parseTOK(data) {
             const $ = cheerio.load(data);
@@ -241,11 +250,12 @@ export default {
                     );
                 }
             );
-            this.schedules.tok.data = tokData;
+            this.schedules.tok.data = this.prepareData(tokData);
         },
         parsePoznan(data) {
             const link = this.getPoznanScheduleLink(data);
-            axios
+            //* it has to return a promise, otherwhise scrape().then won't wait for it to end
+            return axios
                 .get(`${PROXY}${link}`, {
                     headers: { "X-Requested-With": "XMLHttpRequest" },
                 })
@@ -280,7 +290,102 @@ export default {
                 .each(function () {
                     poznanData.push($(this).text().trim());
                 });
-            this.schedules.poznan.data = poznanData;
+            this.schedules.poznan.data = this.prepareData(poznanData);
+        },
+        prepareData(data) {
+            // it adds id and type for each piece of data
+            const regex = /([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]/;
+            return data.map((text, index) => {
+                const type = text.match(regex) ? "time" : ["data"];
+                if (
+                    type !== "time" &&
+                    index !== 0 &&
+                    !data[index - 1].match(regex)
+                ) {
+                    // when data is after data in array, "fw" adds left padding to the data div so the time div is always on the left
+                    type.push("fw");
+                }
+                return { text, id: uuidv4(), type };
+            });
+        },
+        scrape() {
+            //* Polskie Radio scraping
+            const pr = axios
+                .get(
+                    `${PROXY}www.polskieradio.pl/Portal/Schedule/Schedule.aspx`,
+                    {
+                        headers: { "X-Requested-With": "XMLHttpRequest" },
+                    }
+                )
+                .then((res) => {
+                    this.parsePR(res.data);
+                })
+                .catch((error) => {
+                    console.error(error);
+                });
+
+            //* RMF FM scraping
+            const rmf = axios
+                .get(`${PROXY}www.rmf.fm/ramowka/`, {
+                    headers: { "X-Requested-With": "XMLHttpRequest" },
+                })
+                .then((res) => {
+                    this.parseRMF(res.data);
+                })
+                .catch((error) => {
+                    console.error(error);
+                });
+
+            //* Radio ZET scraping
+            const zet = axios
+                .get(`${PROXY}www.radiozet.pl/Radio/Ramowka-radiowa/`, {
+                    headers: { "X-Requested-With": "XMLHttpRequest" },
+                })
+                .then((res) => {
+                    this.parseZET(res.data);
+                })
+                .catch((error) => {
+                    console.error(error);
+                });
+
+            //* TOK FM scraping
+            const tok = axios
+                .get(`${PROXY}audycje.tokfm.pl/ramowka`, {
+                    headers: { "X-Requested-With": "XMLHttpRequest" },
+                })
+                .then((res) => {
+                    this.parseTOK(res.data);
+                })
+                .catch((error) => {
+                    console.error(error);
+                });
+
+            //* Radio Poznań scraping
+            // starting from /kontakt, because it loads faster than main page and i need to get schedule link, which changes everyday
+            const poznan = new Promise((resolve, reject) => {
+                axios
+                    .get(`${PROXY}https://radiopoznan.fm/kontakt`, {
+                        headers: { "X-Requested-With": "XMLHttpRequest" },
+                    })
+                    .then((res) => {
+                        this.parsePoznan(res.data).then(() => {
+                            resolve();
+                        });
+                    })
+                    .catch((error) => {
+                        reject(error);
+                    });
+            });
+            const promises = [pr, tok, zet, rmf, poznan];
+            return Promise.all(promises);
+        },
+        //TODO remove it later
+        log(value = "") {
+            console.log("test", value);
+        },
+        //TODO add ability to remove certain schedules, as well as remove all of them
+        changeSchedule(date) {
+            this.schedules = JSON.parse(localStorage.getItem(date));
         },
     },
     computed: {
@@ -304,70 +409,13 @@ export default {
         },
     },
     mounted() {
-        //TODO save data once a day to localstorage or something, so the axios when hits and gets resposne second time
-        // checks if it is the same as the saved one, if so mark this piece of data in localstorage as valid and don't
-        // request the url again this day, serve cached one
-
-        //* Polskie Radio scraping
-        axios
-            .get(`${PROXY}www.polskieradio.pl/Portal/Schedule/Schedule.aspx`, {
-                headers: { "X-Requested-With": "XMLHttpRequest" },
-            })
-            .then((res) => {
-                this.parsePR(res.data);
-            })
-            .catch((error) => {
-                console.error(error);
-            });
-
-        //* RMF FM scraping
-        axios
-            .get(`${PROXY}www.rmf.fm/ramowka/`, {
-                headers: { "X-Requested-With": "XMLHttpRequest" },
-            })
-            .then((res) => {
-                this.parseRMF(res.data);
-            })
-            .catch((error) => {
-                console.error(error);
-            });
-
-        //* Radio ZET scraping
-        axios
-            .get(`${PROXY}www.radiozet.pl/Radio/Ramowka-radiowa/`, {
-                headers: { "X-Requested-With": "XMLHttpRequest" },
-            })
-            .then((res) => {
-                this.parseZET(res.data);
-            })
-            .catch((error) => {
-                console.error(error);
-            });
-
-        //* TOK FM scraping
-        axios
-            .get(`${PROXY}audycje.tokfm.pl/ramowka`, {
-                headers: { "X-Requested-With": "XMLHttpRequest" },
-            })
-            .then((res) => {
-                this.parseTOK(res.data);
-            })
-            .catch((error) => {
-                console.error(error);
-            });
-
-        //* Radio Poznań scraping
-        // starting from /kontakt, because it loads faster than main page and i need to get schedule link, which changes everyday
-        axios
-            .get(`${PROXY}https://radiopoznan.fm/kontakt`, {
-                headers: { "X-Requested-With": "XMLHttpRequest" },
-            })
-            .then((res) => {
-                this.parsePoznan(res.data);
-            })
-            .catch((error) => {
-                console.error(error);
-            });
+        //* initial scraping, then saving current state to localstorage
+        this.scrape().then(() => {
+            localStorage.setItem(
+                this.getTodayDate(),
+                JSON.stringify(this.schedules)
+            );
+        });
     },
 };
 </script>
