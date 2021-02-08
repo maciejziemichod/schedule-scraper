@@ -7,7 +7,12 @@
                 :selectedSchedule="currentSchedule"
             />
             <DarkModeButton @toggle-theme="toogleTheme">
-                <Icon :icon="icon" />
+                <!-- //! for some reason, without key icons don't swap -->
+                <FontAwesomeIcon
+                    :icon="icon"
+                    :key="JSON.stringify(icon)"
+                    class="fa-lg"
+                />
             </DarkModeButton>
         </AppNav>
         <div class="remove-buttons">
@@ -51,16 +56,20 @@
 </template>
 
 <script>
+//TODO loop through localstorage, search for every date with regex
+//TODO save theme preferences to localstorage (do it when changing theme)
 //TODO add search
 //TODO add app description how it works, data flow etc
 //TODO split the code a little bit
+//TODO electron version + link in footer
+//TODO add github icon link
+//TODO failing fetching case, for example 500, prace serwisowe
 import Schedule from "@/components/Schedule.vue";
 import ScheduleButton from "@/components/ScheduleButton.vue";
 import ScheduleSelect from "@/components/ScheduleSelect.vue";
 import ScheduleButtonRemove from "@/components/ScheduleButtonRemove.vue";
 import DarkModeButton from "@/components/DarkModeButton.vue";
 import AppNav from "@/components/AppNav.vue";
-import Icon from "@/components/Icon.vue";
 //TODO switch from axios to fetch
 import axios from "axios";
 import cheerio from "cheerio";
@@ -81,7 +90,6 @@ export default {
         ScheduleButtonRemove,
         DarkModeButton,
         AppNav,
-        Icon,
     },
     mixins: [Date],
     data() {
@@ -480,7 +488,7 @@ export default {
             return this.theme === "light" ? "light-theme" : "dark-theme";
         },
         icon() {
-            return this.theme === "light" ? "moon" : "sun";
+            return this.theme === "light" ? ["fas", "moon"] : ["fas", "sun"];
         },
     },
     mounted() {

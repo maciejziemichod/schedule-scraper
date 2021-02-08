@@ -62,6 +62,7 @@ export default {
 .data.fw,
 .data:first-of-type {
     padding-left: 20%;
+    padding-bottom: 0.2rem;
 }
 .time {
     border-top: solid 1px var(--font-color);
