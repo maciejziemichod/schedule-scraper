@@ -48,6 +48,7 @@
                 :schedule="schedule"
             />
         </div>
+        <AppFooter />
     </div>
 </template>
 
@@ -56,7 +57,6 @@
 //TODO add app description how it works, data flow etc
 //TODO split the code a little bit
 //TODO electron version + link in footer
-//TODO add github icon link
 //TODO failing fetching case, for example 500, prace serwisowe
 //cd in catch add to schedule's data stuff like 'something went wrong, refresh the page'; status code; error from axios
 import Schedule from "@/components/Schedule.vue";
@@ -65,6 +65,7 @@ import ScheduleSelect from "@/components/ScheduleSelect.vue";
 import ScheduleButtonRemove from "@/components/ScheduleButtonRemove.vue";
 import DarkModeButton from "@/components/DarkModeButton.vue";
 import AppNav from "@/components/AppNav.vue";
+import AppFooter from "@/components/AppFooter.vue";
 //TODO switch from axios to fetch
 import axios from "axios";
 import cheerio from "cheerio";
@@ -85,6 +86,7 @@ export default {
         ScheduleButtonRemove,
         DarkModeButton,
         AppNav,
+        AppFooter,
     },
     mixins: [Date],
     data() {
@@ -530,8 +532,8 @@ body {
     -moz-osx-font-smoothing: grayscale;
     color: var(--font-color);
     background-color: var(--background-color);
+    padding: 0 2rem;
     min-height: 100vh;
-    padding: 0 2rem 2rem 2rem;
 }
 button {
     color: inherit;
@@ -550,6 +552,12 @@ select {
     border-bottom: 1px solid var(--font-color);
     color: inherit;
     background: var(--background-color);
+}
+a {
+    color: inherit;
+}
+a:hover {
+    color: var(--hover-color);
 }
 .remove-buttons {
     display: flex;
