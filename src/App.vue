@@ -8,11 +8,7 @@
             />
             <DarkModeButton @toggle-theme="toogleTheme">
                 <!-- //! for some reason, without key icons don't swap -->
-                <FontAwesomeIcon
-                    :icon="icon"
-                    :key="JSON.stringify(icon)"
-                    class="fa-lg"
-                />
+                <FontAwesomeIcon :icon="icon" :key="iconKey" class="fa-lg" />
             </DarkModeButton>
         </AppNav>
         <div class="remove-buttons">
@@ -57,13 +53,13 @@
 
 <script>
 //TODO loop through localstorage, search for every date with regex
-//TODO save theme preferences to localstorage (do it when changing theme)
 //TODO add search
 //TODO add app description how it works, data flow etc
 //TODO split the code a little bit
 //TODO electron version + link in footer
 //TODO add github icon link
 //TODO failing fetching case, for example 500, prace serwisowe
+// in catch add to schedule's data stuff like 'something went wrong, refresh the page'; status code; error from axios
 import Schedule from "@/components/Schedule.vue";
 import ScheduleButton from "@/components/ScheduleButton.vue";
 import ScheduleSelect from "@/components/ScheduleSelect.vue";
@@ -463,6 +459,9 @@ export default {
             } else {
                 this.theme = "light";
             }
+
+            //* saving theme to localstorage
+            localStorage.setItem("schedule-scraper-theme", this.theme);
         },
     },
     computed: {
@@ -490,10 +489,19 @@ export default {
         icon() {
             return this.theme === "light" ? ["fas", "moon"] : ["fas", "sun"];
         },
+        iconKey() {
+            return this.theme === "light" ? "moon" : "sun";
+        },
     },
     mounted() {
         //* initial scraping, then saving current state to localstorage
         this.saveScraped();
+
+        //* loading theme preferences
+        const themePref = localStorage.getItem("schedule-scraper-theme");
+        if (themePref) {
+            this.theme = themePref;
+        }
     },
 };
 </script>
