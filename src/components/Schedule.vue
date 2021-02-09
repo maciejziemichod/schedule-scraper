@@ -1,5 +1,5 @@
 <template>
-    <div v-show="schedule.show">
+    <section v-show="schedule.show">
         <h1>{{ schedule.title }}</h1>
         <div class="schedule">
             <div
@@ -10,7 +10,7 @@
                 {{ elem.text }}
             </div>
         </div>
-    </div>
+    </section>
 </template>
 
 <script>
@@ -47,6 +47,9 @@ export default {
 </script>
 
 <style scoped>
+section {
+    padding-bottom: 6rem;
+}
 .data,
 .time {
     display: inline-block;

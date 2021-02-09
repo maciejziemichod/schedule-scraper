@@ -310,7 +310,7 @@ export default {
                     this.parsePoznanScheduleData(res.data);
                 })
                 .catch((error) => {
-                    console.error(error);
+                    this.handleRequestError(error, "poznan");
                 });
         },
         getPoznanScheduleLink(data) {
@@ -368,7 +368,7 @@ export default {
                     this.parsePR(res.data);
                 })
                 .catch((error) => {
-                    console.error(error);
+                    this.handleRequestError(error, "pr");
                 });
 
             //* RMF FM scraping
@@ -380,7 +380,7 @@ export default {
                     this.parseRMF(res.data);
                 })
                 .catch((error) => {
-                    console.error(error);
+                    this.handleRequestError(error, "rmf");
                 });
 
             //* Radio ZET scraping
@@ -392,7 +392,7 @@ export default {
                     this.parseZET(res.data);
                 })
                 .catch((error) => {
-                    console.error(error);
+                    this.handleRequestError(error, "zet");
                 });
 
             //* TOK FM scraping
@@ -404,7 +404,7 @@ export default {
                     this.parseTOK(res.data);
                 })
                 .catch((error) => {
-                    console.error(error);
+                    this.handleRequestError(error, "tok");
                 });
 
             //* Radio Poznań scraping
@@ -420,6 +420,7 @@ export default {
                         });
                     })
                     .catch((error) => {
+                        this.handleRequestError(error, "poznan");
                         reject(error);
                     });
             });
@@ -467,6 +468,35 @@ export default {
 
             //* saving theme to localstorage
             localStorage.setItem("schedule-scraper-theme", this.theme);
+        },
+        handleRequestError(error, schedule) {
+            const errorMessage = {
+                text: "Something went wrong, refresh the page",
+                id: uuidv4(),
+                type: "data",
+            };
+            const statusMessage = error.response
+                ? {
+                      text: `Status code: ${error.response.status}`,
+                      id: uuidv4(),
+                      type: "data",
+                  }
+                : null;
+
+            if (schedule === "pr") {
+                const prs = ["pr1", "pr2", "pr3", "pr4", "pr24"];
+                prs.forEach((pr) => {
+                    this.schedules[pr].data.push(errorMessage);
+                    if (statusMessage) {
+                        this.schedules[pr].data.push(statusMessage);
+                    }
+                });
+            } else {
+                this.schedules[schedule].data.push(errorMessage);
+                if (statusMessage) {
+                    this.schedules[schedule].data.push(statusMessage);
+                }
+            }
         },
     },
     computed: {
@@ -527,6 +557,7 @@ body {
     --hover-color: #52597a;
 }
 .container {
+    position: relative;
     font-family: Avenir, Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
