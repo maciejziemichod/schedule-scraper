@@ -57,8 +57,7 @@
 //TODO add app description how it works, data flow etc
 //TODO split the code a little bit
 //TODO electron version + link in footer
-//TODO failing fetching case, for example 500, prace serwisowe
-//cd in catch add to schedule's data stuff like 'something went wrong, refresh the page'; status code; error from axios
+//TODO make it look nicer
 import Schedule from "@/components/Schedule.vue";
 import ScheduleButton from "@/components/ScheduleButton.vue";
 import ScheduleSelect from "@/components/ScheduleSelect.vue";
@@ -92,7 +91,7 @@ export default {
     data() {
         const today = this.getTodayDate();
         const regex = /([1-9]|[1-3][0-9])\.([1-9]|1[0-2])\.(20[0-9][0-9])/;
-        const scheduleDates = [];
+        let scheduleDates = [];
         Object.keys(localStorage).forEach((elem) => {
             if (elem.match(regex)) {
                 scheduleDates.push(elem);
@@ -101,6 +100,17 @@ export default {
         if (scheduleDates.indexOf(today) === -1) {
             scheduleDates.unshift(today);
         }
+        // convert dates to Date objects to be able to sort them, then format
+        scheduleDates = scheduleDates
+            .map((elem) => {
+                return this.getProperDate(elem);
+            })
+            .sort((a, b) => {
+                return b - a;
+            })
+            .map((elem) => {
+                return this.formatDate(elem);
+            });
 
         return {
             schedules: {
