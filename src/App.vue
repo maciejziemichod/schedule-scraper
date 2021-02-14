@@ -452,11 +452,13 @@ export default {
             this.currentSchedule = date;
             this.schedules = JSON.parse(localStorage.getItem(date));
         },
-        removeSchedule(date = this.currentSchedule) {
+        removeSchedule(date = this.currentSchedule, changeToToday = true) {
             localStorage.removeItem(date);
             if (date !== this.getTodayDate()) {
                 this.scheduleDates.splice(this.scheduleDates.indexOf(date), 1);
-                this.changeSchedule(this.getTodayDate());
+                if (changeToToday) {
+                    this.changeSchedule(this.getTodayDate());
+                }
             } else {
                 // when removing today, scrape schedules again
                 this.saveScraped().then(() => {
@@ -467,7 +469,7 @@ export default {
         removeAllSchedules() {
             // desctructuring because removeSchedule mutates scheduleDates
             [...this.scheduleDates].forEach((date) => {
-                this.removeSchedule(date);
+                this.removeSchedule(date, false);
             });
         },
         saveScraped() {
@@ -530,11 +532,16 @@ export default {
     computed: {
         areAllHidden() {
             let response = true;
-            Object.keys(this.schedules).forEach((elem) => {
-                if (this.schedules[elem].show) {
-                    response = false;
-                }
-            });
+            // catch is for using remove all schedules
+            try {
+                Object.keys(this.schedules).forEach((elem) => {
+                    if (this.schedules[elem].show) {
+                        response = false;
+                    }
+                });
+            } catch {
+                response = true;
+            }
             return response;
         },
         computedTheme() {
