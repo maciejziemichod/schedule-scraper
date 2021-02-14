@@ -30,27 +30,29 @@
             </ScheduleButtonRemove>
         </div>
 
-        <div>
+        <div class="hide-show-all-buttons">
             <ScheduleButton
+                v-if="!areAllHidden"
                 :text="'Hide all'"
-                :isActive="areAllHidden"
                 @toggle-schedule="hideAllSchedules()"
             />
             <ScheduleButton
+                v-else
                 :text="'Show all'"
-                :isActive="areAllShown"
                 @toggle-schedule="showAllSchedules()"
             />
         </div>
+
         <div>
             <ScheduleButton
                 v-for="schedule in schedules"
                 :key="schedule.title"
                 :text="schedule.title"
                 :isActive="schedule.show"
-                @toggle-schedule="schedule.show = !schedule.show"
+                @toggle-schedule="toggleSchedule(schedule)"
             />
         </div>
+
         <div>
             <Schedule
                 v-for="schedule in schedules"
@@ -67,9 +69,6 @@
 //TODO add app description how it works, data flow etc
 //TODO split the code a little bit
 //TODO electron version + link in footer
-//TODO make it look nicer
-//TODO show/hide all in one button, clicking one schedule should hide others; current way of working is annoying
-//cd remove buttons: when deleting current schedule, it should switch to other schedule
 import Schedule from "@/components/Schedule.vue";
 import ScheduleButton from "@/components/ScheduleButton.vue";
 import ScheduleSelect from "@/components/ScheduleSelect.vue";
@@ -457,6 +456,7 @@ export default {
             localStorage.removeItem(date);
             if (date !== this.getTodayDate()) {
                 this.scheduleDates.splice(this.scheduleDates.indexOf(date), 1);
+                this.changeSchedule(this.getTodayDate());
             } else {
                 // when removing today, scrape schedules again
                 this.saveScraped().then(() => {
@@ -520,17 +520,14 @@ export default {
                 }
             }
         },
+        toggleSchedule(schedule) {
+            if (!schedule.show) {
+                this.hideAllSchedules();
+            }
+            schedule.show = !schedule.show;
+        },
     },
     computed: {
-        areAllShown() {
-            let response = true;
-            Object.keys(this.schedules).forEach((elem) => {
-                if (!this.schedules[elem].show) {
-                    response = false;
-                }
-            });
-            return response;
-        },
         areAllHidden() {
             let response = true;
             Object.keys(this.schedules).forEach((elem) => {
@@ -641,9 +638,7 @@ a:hover {
 .remove-buttons > *:last-child {
     margin-right: 0;
 }
-
-/* //TODO and footer calc width, because it depends on container padding. Maybe use var?*/
-/* @media (max-width) {
-    .container{}
-} */
+.hide-show-all-buttons {
+    padding-bottom: 0.6rem;
+}
 </style>

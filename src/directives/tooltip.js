@@ -93,9 +93,6 @@ export default {
 
         // to use functions which are inside this object, we can't use this, we have to use dir, which is the directive object
         dir.updateTooltip(el, value);
-
-        //? Maybe if someone wants global changes to tooltips, they should just add css to override the var
-        //TODO describe the working, make documentation etc
     },
     updated(el, { value, dir }) {
         dir.updateTooltip(el, value);

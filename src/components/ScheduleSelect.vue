@@ -27,6 +27,11 @@ export default {
         },
     },
     emits: ["select-change"],
+    watch: {
+        selectedSchedule(newVal) {
+            this.selected = newVal;
+        },
+    },
 };
 </script>
 
