@@ -21,7 +21,7 @@ export default {};
 footer {
     position: absolute;
     bottom: 0;
-    width: calc(100% - 2rem);
+    width: calc(100% - (var(--container-padding) * 2));
     padding-bottom: 2rem;
     display: flex;
     flex-direction: column;

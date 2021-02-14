@@ -12,12 +12,22 @@
             </DarkModeButton>
         </AppNav>
         <div class="remove-buttons">
-            <ScheduleButtonRemove @remove-schedule="removeSchedule"
-                >Remove current schedule</ScheduleButtonRemove
+            <ScheduleButtonRemove
+                @remove-schedule="removeSchedule"
+                v-tooltip="'Remove current schedule'"
             >
-            <ScheduleButtonRemove @remove-schedule="removeAllSchedules"
-                >Remove all schedules</ScheduleButtonRemove
+                <FontAwesomeIcon :icon="['fas', 'trash-alt']" />
+            </ScheduleButtonRemove>
+            <ScheduleButtonRemove
+                @remove-schedule="removeAllSchedules"
+                v-tooltip="'Remove all schedules'"
             >
+                <FontAwesomeIcon
+                    :icon="['fas', 'trash-alt']"
+                    style="padding-right: 0.2rem"
+                />
+                <FontAwesomeIcon :icon="['fas', 'trash-alt']" />
+            </ScheduleButtonRemove>
         </div>
 
         <div>
@@ -58,6 +68,8 @@
 //TODO split the code a little bit
 //TODO electron version + link in footer
 //TODO make it look nicer
+//TODO show/hide all in one button, clicking one schedule should hide others; current way of working is annoying
+//cd remove buttons: when deleting current schedule, it should switch to other schedule
 import Schedule from "@/components/Schedule.vue";
 import ScheduleButton from "@/components/ScheduleButton.vue";
 import ScheduleSelect from "@/components/ScheduleSelect.vue";
@@ -560,21 +572,39 @@ body {
     --font-color: #425466;
     --background-color: #ffffff;
     --hover-color: #000000;
+    --border-color: #d7d7d7;
 }
 .dark-theme {
     --font-color: #ebeff8;
     --background-color: #1e2933;
     --hover-color: #52597a;
+    --border-color: #535353;
 }
 .container {
+    --container-padding: 20rem;
     position: relative;
     font-family: Avenir, Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     color: var(--font-color);
     background-color: var(--background-color);
-    padding: 0 2rem;
+    padding: 0 var(--container-padding);
     min-height: 100vh;
+}
+@media (max-width: 1205px) {
+    .container {
+        --container-padding: 10rem;
+    }
+}
+@media (max-width: 890px) {
+    .container {
+        --container-padding: 5rem;
+    }
+}
+@media (max-width: 725px) {
+    .container {
+        --container-padding: 1rem;
+    }
 }
 button {
     color: inherit;
@@ -608,4 +638,12 @@ a:hover {
 .remove-buttons > * {
     margin: 0 1rem;
 }
+.remove-buttons > *:last-child {
+    margin-right: 0;
+}
+
+/* //TODO and footer calc width, because it depends on container padding. Maybe use var?*/
+/* @media (max-width) {
+    .container{}
+} */
 </style>

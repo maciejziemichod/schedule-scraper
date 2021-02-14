@@ -7,7 +7,7 @@
                 :key="elem.id"
                 :class="elem.type"
             >
-                {{ elem.text }}
+                {{ elem.text ? elem.text : "?" }}
             </div>
         </div>
     </section>
@@ -60,7 +60,7 @@ section {
 .data:not(.fw) {
     padding: 5px 0;
 
-    border-top: solid 1px var(--font-color);
+    border-top: solid 1px var(--border-color);
 }
 .data.fw,
 .data:first-of-type {
@@ -68,7 +68,7 @@ section {
     padding-bottom: 0.2rem;
 }
 .time {
-    border-top: solid 1px var(--font-color);
+    border-top: solid 1px var(--border-color);
     padding: 5px 0;
     width: 20%;
 }

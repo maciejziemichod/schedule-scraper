@@ -14,9 +14,14 @@ nav {
     display: flex;
     justify-content: flex-end;
     align-items: center;
-    padding: 0 2rem;
 }
 nav > * {
     margin: 0 2rem;
+}
+nav > *:first-child {
+    margin-left: 0;
+}
+nav > *:last-child {
+    margin-right: 0;
 }
 </style>
