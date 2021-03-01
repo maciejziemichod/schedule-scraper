@@ -349,7 +349,13 @@ export default {
 
             $("#play_list li")
                 .filter(function () {
-                    return ["", "past", "active"].includes(this.attribs.class);
+                    return [
+                        "",
+                        "past",
+                        "active",
+                        "header",
+                        "header_past",
+                    ].includes(this.attribs.class);
                 })
                 .contents()
                 .filter(function () {
