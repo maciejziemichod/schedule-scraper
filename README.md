@@ -1,5 +1,7 @@
 # schedule-scraper
 
+This scraper is outdated, it isn't working correctly.
+
 ## Project setup
 ```
 npm install
